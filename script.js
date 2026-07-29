@@ -136,130 +136,111 @@ document.getElementById("reset").onclick = () => {
 
 function playBell(){
 
-    if(!soundEnabled) return;
+const ctx =
+new (window.AudioContext || window.webkitAudioContext)();
 
 
-    const ctx =
-    new (window.AudioContext || window.webkitAudioContext)();
+const now = ctx.currentTime;
 
 
-    const now = ctx.currentTime;
+function bell(freq, volume, delay, decay){
 
 
+    const osc = ctx.createOscillator();
 
-    function bellTone(freq, volume, decay){
-
-
-        const osc = ctx.createOscillator();
-
-        const gain = ctx.createGain();
+    const gain = ctx.createGain();
 
 
 
-        osc.type = "sine";
+    osc.type = "sine";
 
 
-        osc.frequency.setValueAtTime(
-            freq,
-            now
-        );
-
-
-
-        gain.gain.setValueAtTime(
-            0.001,
-            now
-        );
-
-
-        gain.gain.exponentialRampToValueAtTime(
-            volume,
-            now + 0.03
-        );
-
-
-        gain.gain.exponentialRampToValueAtTime(
-            0.001,
-            now + decay
-        );
+    osc.frequency.setValueAtTime(
+        freq,
+        now + delay
+    );
 
 
 
-        osc.connect(gain);
-
-        gain.connect(ctx.destination);
-
-
-
-        osc.start(now);
-
-        osc.stop(now + decay);
-
-    }
+    gain.gain.setValueAtTime(
+        0.0001,
+        now + delay
+    );
 
 
+    gain.gain.exponentialRampToValueAtTime(
+        volume,
+        now + delay + 0.05
+    );
 
-    bellTone(440, 0.12, 3.5);
 
-
-    setTimeout(()=>{
-
-        bellTone(880, 0.035, 2.5);
-
-    },80);
+    gain.gain.exponentialRampToValueAtTime(
+        0.0001,
+        now + delay + decay
+    );
 
 
 
-    setTimeout(()=>{
+    osc.connect(gain);
 
-        bellTone(1320, 0.015, 2);
+    gain.connect(ctx.destination);
 
-    },120);
 
+
+    osc.start(
+        now + delay
+    );
+
+
+    osc.stop(
+        now + delay + decay
+    );
 
 }
 
 
-setInterval(()=>{
+bell(392, 0.07, 0, 1.8);
+
+bell(588, 0.018, 0.05, 1.4);
+
+bell(784, 0.008, 0.12, 1);
+
+}
 
 
-    if(!running) return;
+setInterval(() => {
 
 
+if(running){
 
-    if(remaining > 0){
+
+    remaining--;
 
 
-        remaining--;
+    if(remaining <= 0){
 
-        renderTime();
+
+        playBell();
+
+
+        if(mode === "focus"){
+
+            setMode("break");
+
+        } else {
+
+            setMode("focus");
+
+        }
 
 
     }
 
-    
-else {
 
-    running = false;
+    renderTime();
 
-    play.textContent = "▶";
-
-
-    playBell();
-
-
-    if(mode === "break"){
-
-        setMode("focus");
-
-    }
 
 }
 
 
 },1000);
-
-
-
-
-renderTime();
